@@ -28,7 +28,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 		if debug:
 			return PackedStringArray(["AndroidLocationPlugin/bin/debug/AndroidLocationPlugin-debug.aar"])
 		else:
-			return PackedStringArray(["AndroidLocationPlugin/bin/release/AndroidLocationPlugin-debug.aar"])
+			return PackedStringArray(["AndroidLocationPlugin/bin/release/AndroidLocationPlugin-release.aar"])
 		
 	func _get_android_dependencies(platform: EditorExportPlatform, debug: bool) -> PackedStringArray:
 			return PackedStringArray(["com.google.android.gms:play-services-location:21.2.0"])
