@@ -17,13 +17,13 @@ Godot Android Plugin for Location Service. Retrieve user coordinates and handle 
 
 ## How to use
 Once the `LocationAndroid` node has been added to the scene. You can:
-* refernce it from any script and call 
+* reference it from any script and start location service by calling `begin_Android_location_service()` method
 ```
-%LocationAndroid.begin_Android_location_service()
+$LocationAndroid.begin_Android_location_service()
 ```
-* Connect to its signals from the node tab by clicking connect. For example connecting to location_updated(Latitude:float,Longitude:float) to receive locationn update. Or from code such as
+* Connect to its signals from the node tab by clicking connect. For example connecting to location_updated(Latitude:float,Longitude:float) to receive location updates, or from code as follows
 
 ```
-	%LocationAndroid.location_updated.connect(update_pin_position)
+$LocationAndroid.location_updated.connect(update_pin_position)
 ```
 
