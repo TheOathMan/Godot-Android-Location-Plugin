@@ -6,14 +6,14 @@ Godot Android Plugin for Location Service. Retrieve user coordinates and handle 
 ```
 ./gradlew assemble
 ```
-- Static debug and release libraries will be compiled into addons/AndroidLocationPlugin folder. With that, you can copy the addons folder into your Godot project folder, and enable the plugin.
+- Static debug and release libraries will be compiled into `addons/AndroidLocationPlugin` folder. With that, you can copy the addons folder into your Godot project folder, and enable the plugin.
 
 ## How to setup
-* Make sure the plugin location is at res://addons
-* Go to Project -> Project settings -> Plugin.
-* Enable `LocationAndroid`
-* Go to Project then click Reload current Project.
-* Now add the `LocationAndroid` node using the plus button in the scene tab.
+* Make sure the addons folder plugin is at `res://addons`.
+* Go to Project -> Project settings -> Plugins.
+* Enable `LocationAndroid`.
+* Go to Project then click Reload Current Project.
+* Now add `LocationAndroid` node using the plus add-node button in the scene tab.
 
 ## How to use
 Once the `LocationAndroid` node has been added to the scene. You can:
@@ -21,7 +21,7 @@ Once the `LocationAndroid` node has been added to the scene. You can:
 ```
 $LocationAndroid.begin_Android_location_service()
 ```
-* Connect to its signals from the node tab by clicking connect. For example connecting to location_updated(Latitude:float,Longitude:float) to receive location updates, or from code as follows
+* Connect to its signals by clicking connect from the Node tab. For example, connecting to location_updated(Latitude:float,Longitude:float) to receive location updates, or from code as follows
 
 ```
 $LocationAndroid.location_updated.connect(update_pin_position)
