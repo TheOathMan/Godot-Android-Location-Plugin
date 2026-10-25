@@ -1,46 +1,47 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
 }
-
-// TODO: Update value to your plugin's name.
 val pluginName = "AndroidLocationPlugin"
 
-// TODO: Update value to match your plugin's package name.
 val pluginPackageName = "org.godotengine.plugin.android.AndroidLocationPlugin"
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
 android {
     namespace = pluginPackageName
-    compileSdk = 33
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 24
 
         manifestPlaceholders["godotPluginName"] = pluginName
         manifestPlaceholders["godotPluginPackageName"] = pluginPackageName
         buildConfigField("String", "GODOT_PLUGIN_NAME", "\"${pluginName}\"")
-        setProperty("archivesBaseName", pluginName)
+    }
+    base {
+        archivesName.set(pluginName)
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 }
 
 dependencies {
-    implementation("org.godotengine:godot:4.2.0.stable")
-    implementation("com.google.android.gms:play-services-location:21.2.0")
-    // TODO: Additional dependencies should be added to export_plugin.gd as well.
+    implementation("org.godotengine:godot:4.5.0.stable")
+    implementation("com.google.android.gms:play-services-location:21.4.0")
 }
 
 // BUILD TASKS DEFINITION

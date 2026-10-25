@@ -3,15 +3,22 @@ package org.godotengine.plugin.android.AndroidLocationPlugin
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context.SENSOR_SERVICE
 import android.content.Intent
 import android.content.IntentSender.SendIntentException
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.ContextCompat.startActivity
@@ -21,14 +28,17 @@ import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
+import kotlin.math.log
 
 
-class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
+class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot), SensorEventListener {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private val LOCATION_ACCESS_DIRECT_APPEAL_ID: Int = 0x1
     private val LOCATION_PERMISSION_ID: Int = 42
+    private lateinit var sensorManager: SensorManager
+    private var rotationSensor: Sensor? = null
 
 
     override fun getPluginName() = "AndroidLocationPlugin"
@@ -39,12 +49,25 @@ class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
         signal.add(SignalInfo("AuthorizationStatusUpdated",Integer::class.java))
         signal.add( SignalInfo("LocationStatusUpdated",Integer::class.java))
         signal.add(SignalInfo("DialogueResultUpdated",Integer::class.java))
+        signal.add(SignalInfo("CompassHeadingUpdated",java.lang.Float::class.java))
         return signal
     }
 
     override fun onMainCreate(activity: Activity?): View? {
-        activity?.let {fusedLocationClient = LocationServices.getFusedLocationProviderClient(it)}
+        activity?.let {fusedLocationClient = LocationServices.getFusedLocationProviderClient(it)
+            Log.i("godot", "getSystemService: ")
+            sensorManager = getSystemService(it,SensorManager::class.java) as SensorManager
+            rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        }
         return super.onMainCreate(activity)
+    }
+
+    override fun onMainPause() {
+        super.onMainPause()
+    }
+
+    override fun onMainResume() {
+        super.onMainResume()
     }
 
     override fun onMainRequestPermissionsResult(
@@ -66,6 +89,7 @@ class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
         }
     }
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onMainActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onMainActivityResult(requestCode, resultCode, data)
 
@@ -86,6 +110,7 @@ class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
 // --------------------------------            FUNCTION START HERE           ---------------------------------
 //------------------------------------------------------------------------------------------------------------
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     @UsedByGodot
     private fun StartLocationService() {
         if (checkPermissions()) {
@@ -128,6 +153,7 @@ class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
         return false
     }
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     private fun LocationAccessDetails() {
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 100)
             .setWaitForAccurateLocation(false)
@@ -244,5 +270,63 @@ class AndroidLocationPlugin(godot: Godot): GodotPlugin(godot) {
             }
         }
     }
+
+
+    //---------------------------------- combass code
+
+//    @UsedByGodot
+//    fun StartCompassHeadingUpdate(){
+//        sensorManager = getSystemService(activity!!,SensorManager::class.java) as SensorManager
+//        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+//    }
+    @UsedByGodot
+    fun startUpdatingHeading(){
+        Log.i("godot", "startUpdatingHeading: ")
+        rotationSensor?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    @UsedByGodot
+    fun stoptUpdatingHeading(){
+        Log.i("godot", "stoptUpdatingHeading: ")
+        sensorManager.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_ROTATION_VECTOR) {
+            val rotationMatrix = FloatArray(9)
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+
+            val orientationValues = FloatArray(3)
+            SensorManager.getOrientation(rotationMatrix, orientationValues)
+
+            // Convert radians to degrees
+            val azimuthInRadians = orientationValues[0]
+            val azimuthInDegrees = Math.toDegrees(azimuthInRadians.toDouble()).toFloat()
+
+            // Normalize the degrees to 0-360
+            val heading = (azimuthInDegrees + 360) % 360
+            println("Current Heading: $heading°")
+            emitSignal("CompassHeadingUpdated",heading)
+
+            // Example: Update UI with heading
+//            updateCompassDirection(heading)
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Handle accuracy changes if needed
+    }
+
+//    private fun updateCompassDirection(degrees: Float) {
+//        when (degrees) {
+//            in 0f..45f -> println("North")
+//            in 45f..135f -> println("East")
+//            in 135f..225f -> println("South")
+//            in 225f..315f -> println("West")
+//            else -> println("North")
+//        }
+//    }
 
 }
